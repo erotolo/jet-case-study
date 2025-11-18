@@ -1,0 +1,9 @@
+requests
+psycopg2-binary
+sqlalchemy
+python-dotenv
+dbt-core
+dbt-postgres
+pytest
+pytest-mock
+black==23.12.1

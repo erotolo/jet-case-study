@@ -1,0 +1,34 @@
+version: 1
+
+sources:
+  - name: raw_xkcd
+    description: Raw XKCD comic data from ingestion
+    schema: public
+    tables:
+      - name: comics
+        description: Raw comic data table
+        loaded_at_field: fetched_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 24, period: hour}
+        columns:
+          - name: num
+            description: Comic number (primary key)
+          - name: title
+            description: Comic title
+          - name: alt
+            description: Alt text
+          - name: img
+            description: Image URL
+          - name: transcript
+            description: Comic transcript
+          - name: day
+            description: Publication day
+          - name: month
+            description: Publication month
+          - name: year
+            description: Publication year
+          - name: published_date
+            description: Publication date
+          - name: fetched_at
+            description: When the comic was fetched

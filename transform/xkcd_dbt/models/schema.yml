@@ -1,0 +1,121 @@
+version: 2
+
+models:
+  - name: dim_comic
+    description: |
+      Comic dimension table containing all XKCD comic metadata.
+      This table stores the master data for each comic including title, 
+      publication information, and image details. Each comic has a unique
+      surrogate key for data warehouse operations.
+    columns:
+      - name: comic_key
+        description: "Surrogate key for comic dimension (primary key)"
+        tests:
+          - unique
+          - not_null
+      - name: comic_id
+        description: "Natural key - original XKCD comic number from API"
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Comic title from XKCD"
+        tests:
+          - not_null
+      - name: transcript
+        description: "Comic transcript text (if available)"
+      - name: alt
+        description: "Alternative text for the comic image"
+        tests:
+          - not_null
+      - name: img_url
+        description: "URL to the comic image"
+        tests:
+          - not_null
+      - name: published_date
+        description: "Date the comic was published"
+        tests:
+          - not_null
+      - name: year
+        description: "Year the comic was published"
+      - name: month
+        description: "Month the comic was published"
+      - name: day
+        description: "Day the comic was published"
+      - name: updated_at_timestamp
+        description: "Timestamp when this record was last updated in the data warehouse"
+        tests:
+          - not_null
+
+  - name: fact_comic_metrics
+    description: |
+      Comic performance metrics fact table.
+      Contains calculated business metrics for each comic including cost,
+      view counts, and customer ratings. Metrics are deterministically 
+      calculated based on comic characteristics for consistent results.
+    columns:
+      - name: comic_key
+        description: "Foreign key to dim_comic table"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_comic')
+              field: comic_key
+      - name: cost_eur
+        description: "Calculated cost in euros (based on title length * 5)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: num_views
+        description: "Number of comic views (deterministically calculated from comic_id)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 9999
+      - name: customer_review
+        description: "Customer review score 1-10 (deterministically calculated from comic_id)"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1.0
+              max_value: 10.0
+      - name: load_timestamp
+        description: "Timestamp when this metrics record was created"
+        tests:
+          - not_null
+
+  - name: stg_comics
+    description: |
+      Staging table for raw XKCD comic data.
+      This table performs initial cleaning and type casting of data
+      from the raw comics table before it's used in downstream marts.
+    columns:
+      - name: comic_id
+        description: "XKCD comic number (natural key)"
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Comic title"
+        tests:
+          - not_null
+      - name: transcript
+        description: "Comic transcript (cleaned)"
+      - name: alt
+        description: "Alt text for accessibility"
+      - name: img_url
+        description: "URL to comic image"
+        tests:
+          - not_null
+      - name: published_date
+        description: "Parsed publication date"
+        tests:
+          - not_null
+      - name: year
+        description: "Publication year as integer"
+      - name: month
+        description: "Publication month as integer"
+      - name: day
+        description: "Publication day as integer"
